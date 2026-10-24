@@ -1,8 +1,8 @@
-django
-psycopg2-binary
-whitenoise
-python-decouple
-Pillow
-djangorestframework
-djangorestframework-simplejwt
-django-filter
+Django==6.1.2
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+django-filter==26.2
+psycopg2-binary==2.9.13
+Pillow==13.0.0
+python-decouple==3.8
+whitenoise==6.12.0
