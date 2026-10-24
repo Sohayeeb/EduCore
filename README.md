@@ -102,7 +102,7 @@ educore/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/educore.git
+git clone https://github.com/Sohayeeb/educore.git
 cd educore
 ```
 
@@ -185,3 +185,7 @@ Open `http://127.0.0.1:8000` and log in.
 | `/students/<id>/delete/` | Delete confirmation |
 | `/admin/` | Django admin |
 | `/api/` | REST API root |
+
+## Website URL
+
+`/https://educore-eta-ten.vercel.app/`
