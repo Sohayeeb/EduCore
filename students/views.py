@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q, Count, Avg
 from django.http import HttpResponse
@@ -13,13 +14,18 @@ import csv
 
 from .models import Student
 from .serializers import StudentSerializer, StudentListSerializer
+from .forms import SignUpForm
 
 
 # ── API ViewSet ──────────────────────────────────────────────
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
     filterset_fields = ['course', 'status']
     search_fields = ['name', 'email', 'phone']
     ordering_fields = ['name', 'enrolled_at', 'gpa']
@@ -32,9 +38,14 @@ class StudentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def stats(self, request):
         total = Student.objects.count()
-        by_course = list(Student.objects.values('course').annotate(count=Count('id')))
-        by_status = list(Student.objects.values('status').annotate(count=Count('id')))
+        by_course = list(
+            Student.objects.values('course').annotate(count=Count('id'))
+        )
+        by_status = list(
+            Student.objects.values('status').annotate(count=Count('id'))
+        )
         avg_gpa = Student.objects.aggregate(avg=Avg('gpa'))['avg']
+
         return Response({
             'total_students': total,
             'by_course': by_course,
@@ -46,38 +57,116 @@ class StudentViewSet(viewsets.ModelViewSet):
     def export_csv(self, request):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="students.csv"'
+
         writer = csv.writer(response)
-        writer.writerow(['ID', 'Name', 'Email', 'Phone', 'Course', 'Status', 'GPA', 'Enrolled At'])
+
+        writer.writerow([
+            'ID',
+            'Name',
+            'Email',
+            'Phone',
+            'Course',
+            'Status',
+            'GPA',
+            'Enrolled At'
+        ])
+
         for s in Student.objects.all():
-            writer.writerow([s.id, s.name, s.email, s.phone, s.course, s.status, s.gpa, s.enrolled_at])
+            writer.writerow([
+                s.id,
+                s.name,
+                s.email,
+                s.phone,
+                s.course,
+                s.status,
+                s.gpa,
+                s.enrolled_at
+            ])
+
         return response
 
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
         ids = request.data.get('ids', [])
         deleted, _ = Student.objects.filter(id__in=ids).delete()
-        return Response({'message': f'{deleted} student(s) deleted'})
+
+        return Response({
+            'message': f'{deleted} student(s) deleted'
+        })
 
 
-# ── Template Views ───────────────────────────────────────────
+# ── Authentication Views ─────────────────────────────────────
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+
+        user = authenticate(
+            request,
+            username=username,
+            password=password
+        )
+
         if user:
             login(request, user)
             return redirect('dashboard')
-        messages.error(request, 'Invalid credentials')
+
+        # Check whether the account exists but is waiting
+        # for administrator approval.
+        try:
+            pending_user = User.objects.get(username=username)
+
+            if not pending_user.is_active:
+                messages.error(
+                    request,
+                    'Your account is waiting for admin approval. '
+                    'You can sign in after an administrator activates your account.'
+                )
+            else:
+                messages.error(request, 'Invalid credentials')
+
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid credentials')
+
     return render(request, 'login.html')
+
+
+def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect('signup-pending')
+
+    else:
+        form = SignUpForm()
+
+    return render(request, 'signup.html', {
+        'form': form
+    })
+
+
+def signup_pending(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    return render(request, 'signup_pending.html')
 
 
 def logout_view(request):
     logout(request)
     return redirect('login')
 
+
+# ── Dashboard ────────────────────────────────────────────────
 
 @login_required
 def dashboard(request):
@@ -93,8 +182,10 @@ def dashboard(request):
             Q(email__icontains=query) |
             Q(phone__icontains=query)
         )
+
     if course_filter:
         students = students.filter(course=course_filter)
+
     if status_filter:
         students = students.filter(status=status_filter)
 
@@ -119,6 +210,8 @@ def dashboard(request):
     })
 
 
+# ── Student CRUD ─────────────────────────────────────────────
+
 @login_required
 def student_create(request):
     if request.method == 'POST':
@@ -133,10 +226,20 @@ def student_create(request):
                 gpa=request.POST.get('gpa') or None,
                 profile_picture=request.FILES.get('profile_picture'),
             )
-            messages.success(request, 'Student added successfully')
+
+            messages.success(
+                request,
+                'Student added successfully'
+            )
+
             return redirect('dashboard')
+
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+            messages.error(
+                request,
+                f'Error: {str(e)}'
+            )
+
     return render(request, 'student_form.html', {
         'courses': Student.COURSE_CHOICES,
         'statuses': Student.STATUS_CHOICES,
@@ -147,6 +250,7 @@ def student_create(request):
 @login_required
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
+
     if request.method == 'POST':
         try:
             student.name = request.POST['name']
@@ -156,13 +260,25 @@ def student_update(request, pk):
             student.status = request.POST.get('status', 'active')
             student.address = request.POST.get('address', '')
             student.gpa = request.POST.get('gpa') or None
+
             if request.FILES.get('profile_picture'):
                 student.profile_picture = request.FILES['profile_picture']
+
             student.save()
-            messages.success(request, 'Student updated successfully')
+
+            messages.success(
+                request,
+                'Student updated successfully'
+            )
+
             return redirect('dashboard')
+
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+            messages.error(
+                request,
+                f'Error: {str(e)}'
+            )
+
     return render(request, 'student_form.html', {
         'student': student,
         'courses': Student.COURSE_CHOICES,
@@ -174,14 +290,30 @@ def student_update(request, pk):
 @login_required
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
+
     if request.method == 'POST':
         student.delete()
-        messages.success(request, 'Student deleted')
+
+        messages.success(
+            request,
+            'Student deleted'
+        )
+
         return redirect('dashboard')
-    return render(request, 'student_confirm_delete.html', {'student': student})
+
+    return render(
+        request,
+        'student_confirm_delete.html',
+        {'student': student}
+    )
 
 
 @login_required
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    return render(request, 'student_detail.html', {'student': student})
+
+    return render(
+        request,
+        'student_detail.html',
+        {'student': student}
+    )

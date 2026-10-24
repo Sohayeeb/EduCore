@@ -10,6 +10,8 @@ urlpatterns = [
     path('api/auth/', include('rest_framework.urls')),
     path('', views.dashboard, name='dashboard'),
     path('login/', views.login_view, name='login'),
+    path('signup/', views.signup_view, name='signup'),
+    path('signup/pending/', views.signup_pending, name='signup-pending'),
     path('logout/', views.logout_view, name='logout'),
     path('students/create/', views.student_create, name='student-create'),
     path('students/<int:pk>/update/', views.student_update, name='student-update'),

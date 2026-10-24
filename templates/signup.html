@@ -1,0 +1,141 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sign Up - EduCore</title>
+
+    <!-- USE THE SAME CSS AS LOGIN -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <div class="login-card">
+
+        <!-- SAME LOGIN HEADER -->
+        <div class="login-logo">
+            <h1>Edu<span>Core</span></h1>
+            <p>Create your EduCore account</p>
+        </div>
+
+
+        <!-- SIGNUP FORM -->
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            {% if form.non_field_errors %}
+                <div class="toast toast-error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+
+            <!-- USERNAME -->
+            <div class="form-group">
+
+                <label class="form-label" for="{{ form.username.id_for_label }}">
+                    Username
+                </label>
+
+                {{ form.username }}
+
+                {% for error in form.username.errors %}
+                    <small class="form-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+
+            </div>
+
+
+            <!-- EMAIL -->
+            <div class="form-group">
+
+                <label class="form-label" for="{{ form.email.id_for_label }}">
+                    Email Address
+                </label>
+
+                {{ form.email }}
+
+                {% for error in form.email.errors %}
+                    <small class="form-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="form-group">
+
+                <label class="form-label" for="{{ form.password1.id_for_label }}">
+                    Password
+                </label>
+
+                {{ form.password1 }}
+
+                {% for error in form.password1.errors %}
+                    <small class="form-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+            <div class="form-group">
+
+                <label class="form-label" for="{{ form.password2.id_for_label }}">
+                    Confirm Password
+                </label>
+
+                {{ form.password2 }}
+
+                {% for error in form.password2.errors %}
+                    <small class="form-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+
+            </div>
+
+
+            <!-- SAME LOGIN BUTTON -->
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Create Account
+            </button>
+
+        </form>
+
+
+        <!-- SAME LOGIN FOOTER STYLE -->
+        <div style="text-align: center; margin-top: 1.5rem;">
+
+            <span style="color: var(--text-muted);">
+                Already have an account?
+            </span>
+
+            <a href="{% url 'login' %}"
+               style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                Log in
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

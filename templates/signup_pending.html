@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduCore — Approval Pending</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo">
+            <h1>Edu<span>Core</span></h1>
+            <p>Account created successfully</p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+            <h2 style="margin-bottom: 0.75rem;">Waiting for approval</h2>
+            <p>Your account has been created, but an administrator must approve it before you can sign in.</p>
+        </div>
+
+        <a href="{% url 'login' %}" class="btn btn-primary" style="width: 100%; justify-content: center; text-decoration: none;">
+            Back to Login
+        </a>
+    </div>
+</div>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
