@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}— {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="detail-card">
+    <div class="detail-header">
+        <div class="detail-avatar">
+            {% if student.profile_picture %}
+                <img src="{{ student.profile_picture.url }}" alt="">
+            {% else %}
+                {{ student.name|first|upper }}
+            {% endif %}
+        </div>
+        <div>
+            <div class="detail-name">{{ student.name }}</div>
+            <div class="detail-course">{{ student.course }}</div>
+            <div style="margin-top: 0.5rem;">
+                <span class="badge badge-{{ student.status }}">{{ student.status|title }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="detail-body">
+        <div class="detail-grid">
+            <div class="detail-field">
+                <div class="detail-field-label">Email</div>
+                <div class="detail-field-value">{{ student.email }}</div>
+            </div>
+            <div class="detail-field">
+                <div class="detail-field-label">Phone</div>
+                <div class="detail-field-value">{{ student.phone }}</div>
+            </div>
+            <div class="detail-field">
+                <div class="detail-field-label">GPA</div>
+                <div class="detail-field-value">{{ student.gpa|default:"Not set" }}</div>
+            </div>
+            <div class="detail-field">
+                <div class="detail-field-label">Enrolled At</div>
+                <div class="detail-field-value">{{ student.enrolled_at }}</div>
+            </div>
+            <div class="detail-field">
+                <div class="detail-field-label">Last Updated</div>
+                <div class="detail-field-value">{{ student.updated_at|date:"Y-m-d H:i" }}</div>
+            </div>
+            <div class="detail-field">
+                <div class="detail-field-label">Address</div>
+                <div class="detail-field-value">{{ student.address|default:"Not set" }}</div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back</a>
+            <a href="{% url 'student-update' student.pk %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'student-delete' student.pk %}" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
