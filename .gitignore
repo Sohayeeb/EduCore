@@ -20,3 +20,11 @@ media/
 venv/
 env/
 .venv/
+
+# OS garbage
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
