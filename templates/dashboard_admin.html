@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}— Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">S</div>
+        <div><div class="stat-value">{{ total }}</div><div class="stat-label">Total Students</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">A</div>
+        <div><div class="stat-value">{{ active }}</div><div class="stat-label">Active</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">G</div>
+        <div><div class="stat-value">{{ graduated }}</div><div class="stat-label">Graduated</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">~</div>
+        <div><div class="stat-value">{{ avg_gpa }}</div><div class="stat-label">Avg GPA</div></div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-title">Students by Course</div>
+        <canvas id="courseChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">Students by Status</div>
+        <canvas id="statusChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Assignments panel -->
+<div class="table-card" style="margin-bottom:1.5rem;">
+    <div class="table-header">
+        <div class="table-title">Recent Assignments</div>
+        <a href="{% url 'assignment-create' %}" class="btn btn-primary btn-sm">+ Post Assignment</a>
+    </div>
+    {% if assignments %}
+    <table>
+        <thead><tr><th>Title</th><th>Course</th><th>Due Date</th><th></th></tr></thead>
+        <tbody>
+        {% for a in assignments %}
+        <tr>
+            <td>{{ a.title }}</td>
+            <td>{{ a.course|default:"All" }}</td>
+            <td>{{ a.due_date }}</td>
+            <td>
+                <form method="POST" action="{% url 'assignment-delete' a.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this assignment?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><p>No assignments yet. <a href="{% url 'assignment-create' %}">Post one</a></p></div>
+    {% endif %}
+</div>
+
+<!-- Students table -->
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-title">All Students</div>
+        <div class="table-actions">
+            <form method="GET" class="search-bar" id="filter-form">
+                <input type="text" name="q" id="search-input" class="input input-search"
+                    placeholder="Search name, email, phone..." value="{{ query }}">
+                <select name="course" class="input" onchange="this.form.submit()">
+                    <option value="">All Courses</option>
+                    {% for val, label in courses %}
+                    <option value="{{ val }}" {% if course_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="status" class="input" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    {% for val, label in statuses %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <a href="/api/students/export_csv/" class="btn btn-success btn-sm">⬇ Export CSV</a>
+            <button id="bulk-delete-btn" class="btn btn-danger btn-sm" style="display:none" onclick="bulkDelete()">Delete Selected</button>
+            <a href="{% url 'student-create' %}" class="btn btn-primary btn-sm">+ Add Student</a>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th class="checkbox-col"><input type="checkbox" id="select-all"></th>
+                <th>Student</th>
+                <th>Student #</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>GPA</th>
+                <th>Enrolled</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for student in students %}
+        <tr>
+            <td><input type="checkbox" class="student-checkbox" value="{{ student.id }}"></td>
+            <td>
+                <div class="student-info">
+                    <div class="avatar">
+                        {% if student.profile_picture %}<img src="{{ student.profile_picture.url }}" alt="">
+                        {% else %}{{ student.name|first|upper }}{% endif %}
+                    </div>
+                    <div>
+                        <div class="student-name">{{ student.name }}</div>
+                        <div class="student-email">{{ student.email }}</div>
+                    </div>
+                </div>
+            </td>
+            <td>{{ student.student_number }}</td>
+            <td>{{ student.course }}</td>
+            <td><span class="badge badge-{{ student.status }}">{{ student.status|title }}</span></td>
+            <td>{{ student.gpa|default:"—" }}</td>
+            <td>{{ student.enrolled_at }}</td>
+            <td>
+                <div style="display:flex;gap:.5rem;">
+                    <a href="{% url 'student-detail' student.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    <a href="{% url 'student-update' student.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                    <a href="{% url 'student-delete' student.pk %}" class="btn btn-danger btn-sm">Del</a>
+                    {% if student.user %}
+                    <a href="{% url 'conversation' student.user.pk %}" class="btn btn-secondary btn-sm">Msg</a>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><p>No students found</p></div></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const courseData = {{ by_course|safe }};
+const statusData = {{ by_status|safe }};
+
+new Chart(document.getElementById('courseChart'), {
+    type: 'bar',
+    data: {
+        labels: courseData.map(d => d.course),
+        datasets: [{ label: 'Students', data: courseData.map(d => d.count), backgroundColor: '#4f46e5', borderRadius: 6 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(d => d.status),
+        datasets: [{ data: statusData.map(d => d.count), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b'], borderWidth: 0 }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
+});
+</script>
+{% endblock %}

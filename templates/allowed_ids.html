@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}— Allowed Student IDs{% endblock %}
+{% block content %}
+
+<div class="form-card" style="max-width:700px; margin: 2rem auto;">
+    <div class="form-card-header">
+        <h2>Allowed Student IDs</h2>
+        <p style="color:var(--text-muted); margin-top:0.25rem; font-size:0.875rem;">
+            Only students with an ID on this list can create an account.
+        </p>
+    </div>
+    <div class="form-card-body">
+        <form method="POST" style="display:flex; gap:0.75rem; margin-bottom:1.5rem;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add">
+            <input type="text" name="student_number" class="form-input" placeholder="Student number e.g. STU-2024-001" required style="flex:1;">
+            <input type="text" name="note" class="form-input" placeholder="Note (optional)" style="flex:1;">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+
+        {% if ids %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Number</th>
+                    <th>Note</th>
+                    <th>Added</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id in ids %}
+                <tr>
+                    <td><strong>{{ id.student_number }}</strong></td>
+                    <td>{{ id.note|default:"—" }}</td>
+                    <td>{{ id.created_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="pk" value="{{ id.pk }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>No allowed IDs yet. Add one above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}— My Dashboard{% endblock %}
+{% block content %}
+
+<div class="student-hero">
+    <div class="student-hero-avatar">
+        {% if student.profile_picture %}
+        <img src="{{ student.profile_picture.url }}" alt="{{ student.name }}">
+        {% else %}
+        <div class="avatar-large">{{ student.name|first|upper }}</div>
+        {% endif %}
+    </div>
+    <div class="student-hero-info">
+        <h2>{{ student.name }}</h2>
+        <p>{{ student.course }} &middot; {{ student.student_number }}</p>
+        <span class="badge badge-{{ student.status }}">{{ student.status|title }}</span>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">G</div>
+        <div><div class="stat-value">{{ student.gpa|default:"—" }}</div><div class="stat-label">GPA</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">C</div>
+        <div><div class="stat-value">{{ student.course }}</div><div class="stat-label">Course</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">E</div>
+        <div><div class="stat-value">{{ student.enrolled_at }}</div><div class="stat-label">Enrolled</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">M</div>
+        <div>
+            <div class="stat-value">{{ unread_dm|add:unread_group }}</div>
+            <div class="stat-label">Unread Messages</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-title">Assignments &amp; Homework</div>
+    </div>
+    {% if assignments %}
+    <table>
+        <thead><tr><th>Title</th><th>Description</th><th>Due Date</th></tr></thead>
+        <tbody>
+        {% for a in assignments %}
+        <tr>
+            <td><strong>{{ a.title }}</strong></td>
+            <td>{{ a.description }}</td>
+            <td>
+                <span class="{% if a.due_date|date:'Y-m-d' < now|date:'Y-m-d' %}text-danger{% endif %}">
+                    {{ a.due_date }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><p>No assignments posted yet.</p></div>
+    {% endif %}
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-title">Messages</div>
+        <a href="{% url 'inbox' %}" class="btn btn-primary btn-sm">Open Inbox</a>
+    </div>
+    <div class="empty-state" style="padding:1.5rem;">
+        {% if unread_dm or unread_group %}
+        <p>You have <strong>{{ unread_dm|add:unread_group }}</strong> unread message(s). <a href="{% url 'inbox' %}">View inbox →</a></p>
+        {% else %}
+        <p>No new messages. <a href="{% url 'inbox' %}">Go to inbox →</a></p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

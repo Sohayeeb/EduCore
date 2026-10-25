@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Student(models.Model):
@@ -19,6 +20,16 @@ class Student(models.Model):
         ('suspended', 'Suspended'),
     ]
 
+    # Linked Django user account (set when student signs up)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='student_profile'
+    )
+
+    student_number = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)
@@ -31,7 +42,18 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.course})"
+        return f"{self.name} ({self.student_number})"
 
     class Meta:
         ordering = ['-enrolled_at']
+
+class AllowedStudentID(models.Model):
+    student_number = models.CharField(max_length=20, unique=True)
+    note = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.student_number
+
+    class Meta:
+        ordering = ['student_number']

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}— Post Assignment{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width:600px;">
+        <h2 class="auth-title">Post Assignment</h2>
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-input" placeholder="e.g. Python Functions Exercise" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description *</label>
+                <textarea name="description" class="form-input" rows="4" placeholder="Describe the assignment..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Due Date *</label>
+                <input type="date" name="due_date" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Course (leave blank for all)</label>
+                <select name="course" class="form-input">
+                    <option value="">All Courses</option>
+                    {% for val, label in courses %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Post Assignment</button>
+        </form>
+        <p class="auth-footer"><a href="{% url 'dashboard' %}">← Back to Dashboard</a></p>
+    </div>
+</div>
+{% endblock %}

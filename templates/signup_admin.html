@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}— Admin Sign Up{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Admin Sign Up</h2>
+        <p class="auth-subtitle">Your account will need to be approved by an existing admin.</p>
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="form-error">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">Create Admin Account</button>
+        </form>
+        <p class="auth-footer"><a href="{% url 'signup' %}">← Back</a></p>
+    </div>
+</div>
+{% endblock %}

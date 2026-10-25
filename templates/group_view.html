@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}— {{ group.name }}{% endblock %}
+{% block content %}
+
+<div class="chat-layout">
+    <div class="chat-header">
+        <a href="{% url 'inbox' %}" class="btn btn-secondary btn-sm">← Back</a>
+        <div class="chat-header-name">
+            <div class="avatar-sm">#</div>
+            <span>{{ group.name }}</span>
+            <span class="chat-header-sub">· {{ group.members.count }} members</span>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+        {% for msg in messages %}
+        <div class="chat-msg {% if msg.sender == request.user %}chat-msg-mine{% else %}chat-msg-theirs{% endif %}">
+            {% if msg.sender != request.user %}
+            <div class="chat-sender">{{ msg.sender.username }}</div>
+            {% endif %}
+            <div class="chat-bubble">{{ msg.body }}</div>
+            <div class="chat-time">{{ msg.created_at|date:"M d, g:i a" }}</div>
+        </div>
+        {% empty %}
+        <div class="chat-empty">No messages yet.</div>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="chat-input-bar">
+        {% csrf_token %}
+        <input type="text" name="body" class="chat-input" placeholder="Type a message..." autocomplete="off" required>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+</div>
+
+<script>
+    const el = document.getElementById('chat-messages');
+    if (el) el.scrollTop = el.scrollHeight;
+</script>
+{% endblock %}

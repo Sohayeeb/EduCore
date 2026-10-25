@@ -15,6 +15,15 @@
 <nav class="navbar">
     <a href="{% url 'dashboard' %}" class="navbar-brand">Edu<span>Core</span></a>
     <div class="navbar-right">
+        {% if not is_student %}
+            <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'allowed-ids' %}" class="nav-link">Allowed IDs</a>
+            <a href="{% url 'student-create' %}" class="nav-link">+ Student</a>
+            <a href="{% url 'assignment-create' %}" class="nav-link">+ Assignment</a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="nav-link">My Dashboard</a>
+        {% endif %}
+        <a href="{% url 'inbox' %}" class="nav-link">Messages</a>
         <span class="navbar-user">{{ user.username }}</span>
         <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">Logout</a>
     </div>
@@ -23,10 +32,10 @@
 
 <div id="toast-container" class="toast-container">
     {% for message in messages %}
-        <div class="toast toast-{{ message.tags }}">
-            <span>{% if message.tags == 'success' %}✓{% else %}✕{% endif %}</span>
-            <span>{{ message }}</span>
-        </div>
+    <div class="toast toast-{{ message.tags }}">
+        <span>{% if message.tags == 'success' %}+{% else %}x{% endif %}</span>
+        <span>{{ message }}</span>
+    </div>
     {% endfor %}
 </div>
 

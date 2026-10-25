@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}— Sign Up{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Create an Account</h2>
+        <p class="auth-subtitle">What kind of account do you need?</p>
+        <div class="choice-grid">
+            <a href="{% url 'signup-admin' %}" class="choice-card">
+                <div class="choice-icon">🛡️</div>
+                <div class="choice-label">Admin Account</div>
+                <div class="choice-desc">Manage students, post assignments, view all data. Requires admin approval.</div>
+            </a>
+            <a href="{% url 'signup-student' %}" class="choice-card">
+                <div class="choice-icon">🎓</div>
+                <div class="choice-label">Student Account</div>
+                <div class="choice-desc">View your profile, assignments, and message classmates. Verified by student number.</div>
+            </a>
+        </div>
+        <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+    </div>
+</div>
+{% endblock %}
